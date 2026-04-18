@@ -1,0 +1,56 @@
+# Python (Тимчасові файли компіляції)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Віртуальні середовища (Virtual Environments)
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Налаштування середовища та секрети (КРИТИЧНО ВАЖЛИВО)
+.env
+.flaskenv
+*.secret
+
+# IDE (Налаштування редакторів коду)
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Бази даних (Тимчасові файли або локальні БД)
+*.db
+*.sqlite3
+mysql_data/
+
+# Логи (Logs)
+*.log
+logs/
+
+# Системні файли Windows / macOS
+Thumbs.db
+desktop.ini
+.DS_Store
