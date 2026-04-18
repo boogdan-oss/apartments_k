@@ -1,44 +1,71 @@
-from sqlalchemy import Column, Integer, String, Boolean, Numeric, ForeignKey, Text
+import enum
+from sqlalchemy import Column, Integer, String, Date, Numeric, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from database import Base
 
-class User(Base):
-    __tablename__ = "users"
+# 1. Створюємо перелік (Enum) для ролей
+class UserRole(str, enum.Enum):
+    admin = "admin"           # Адміністратор
+    tenant = "tenant"         # Орендар (клієнт)
+    landlord = "landlord"     # Орендодавець (власник)
 
+class Person(Base):
+    __tablename__ = 'person'
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(100), unique=True, index=True, nullable=False)
-    hashed_password = Column(String(255), nullable=False)
     name = Column(String(50), nullable=False)
-    phone = Column(String(20), nullable=False)
-    telegram_link = Column(String(100), nullable=True) # Прямий контакт
+    surname = Column(String(50), nullable=False)
+    middle_name = Column(String(50))
+    email = Column(String(100), unique=True)
+    phone_number = Column(String(20), nullable=False, unique=True)
+    date_of_birth = Column(Date)
     
-    is_admin = Column(Boolean, default=False) # Для адмін-панелі
-    
-    properties = relationship("Property", back_populates="owner", cascade="all, delete-orphan")
+    # 2. Додаємо поле role
+    role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.tenant)
 
+# Далі йдуть ваші інші таблиці без змін...
+class Owner(Base):
+    __tablename__ = 'owner'
+    id = Column(Integer, ForeignKey('person.id', ondelete='CASCADE'), primary_key=True)
+    person = relationship("Person")
+    apartments = relationship("Apartment", back_populates="owner")
 
-class Property(Base):
-    __tablename__ = "properties"
+class Client(Base):
+    __tablename__ = 'client'
+    id = Column(Integer, ForeignKey('person.id', ondelete='CASCADE'), primary_key=True)
+    id_card_series = Column(String(20), nullable=False, unique=True)
+    person = relationship("Person")
 
+class Realtor(Base):
+    __tablename__ = 'realtor'
+    id = Column(Integer, ForeignKey('person.id', ondelete='CASCADE'), primary_key=True)
+    work_experience = Column(Integer, default=0)
+    commission_rate = Column(Numeric(5, 2), nullable=False)
+    person = relationship("Person")
+
+class Address(Base):
+    __tablename__ = 'address'
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(150), nullable=False)
-    description = Column(Text, nullable=False)
-    price = Column(Numeric(10, 2), nullable=False)
-    city = Column(String(50), index=True, nullable=False) # Для пошуку
-    address = Column(String(150), nullable=False)
-    
-    is_active = Column(Boolean, default=True) # Управління статусом (Активне / Здано)
-    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    street = Column(String(100), nullable=False)
+    building = Column(String(20), nullable=False)
+    apartment_number = Column(String(10), nullable=False)
+    apartments = relationship("Apartment", back_populates="address")
 
-    owner = relationship("User", back_populates="properties")
-    photos = relationship("Photo", back_populates="property", cascade="all, delete-orphan")
-
-
-class Photo(Base):
-    __tablename__ = "photos"
-
+class Apartment(Base):
+    __tablename__ = 'apartment'
     id = Column(Integer, primary_key=True, index=True)
-    url = Column(String(255), nullable=False) # Шлях до файлу або посилання
-    property_id = Column(Integer, ForeignKey("properties.id", ondelete="CASCADE"), nullable=False)
+    area = Column(Numeric(10, 2), nullable=False)
+    price = Column(Numeric(15, 0), nullable=False)
+    room_count = Column(Integer, nullable=False)
+    address_id = Column(Integer, ForeignKey('address.id', ondelete='RESTRICT'), nullable=False)
+    owner_id = Column(Integer, ForeignKey('owner.id', ondelete='RESTRICT'), nullable=False)
+    address = relationship("Address", back_populates="apartments")
+    owner = relationship("Owner", back_populates="apartments")
 
-    property = relationship("Property", back_populates="photos")
+class Contract(Base):
+    __tablename__ = 'contract'
+    id = Column(Integer, primary_key=True, index=True)
+    apartment_id = Column(Integer, ForeignKey('apartment.id', ondelete='RESTRICT'), nullable=False)
+    client_id = Column(Integer, ForeignKey('client.id', ondelete='RESTRICT'), nullable=False)
+    realtor_id = Column(Integer, ForeignKey('realtor.id', ondelete='RESTRICT'), nullable=False)
+    contract_date = Column(Date, nullable=False)
+    total_sum = Column(Numeric(15, 2), nullable=False)
