@@ -1,79 +1,74 @@
-from pydantic import BaseModel
-from typing import Optional
-from datetime import date
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
 from decimal import Decimal
 
-# ==========================================
-# PERSON (Особа / Користувач)
-# ==========================================
-class PersonBase(BaseModel):
+# --- PHOTOS ---
+class PhotoBase(BaseModel):
+    url: str
+
+class PhotoResponse(PhotoBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+# --- USERS ---
+class UserBase(BaseModel):
+    email: EmailStr
     name: str
-    surname: str
-    middle_name: Optional[str] = None
-    email: Optional[str] = None
-    phone_number: str
-    date_of_birth: Optional[date] = None
+    phone: str
+    telegram_link: Optional[str] = None
 
-class PersonCreate(PersonBase):
-    pass
+class UserCreate(UserBase):
+    password: str # Приймаємо пароль, але в БД піде хеш
 
-class PersonResponse(PersonBase):
+    # --- USERS ---
+class UserBase(BaseModel):
+    email: str # Використовуємо str, оскільки виникали проблеми з email-validator
+    name: str
+    phone: str
+    telegram_link: Optional[str] = None
+
+class UserCreate(UserBase):
+    password: str 
+
+# Нова схема для оновлення (всі поля необов'язкові)
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    telegram_link: Optional[str] = None
+
+class UserResponse(UserBase):
     id: int
-
+    is_admin: bool
     class Config:
         from_attributes = True
 
-# ==========================================
-# ADDRESS (Адреса)
-# ==========================================
-class AddressBase(BaseModel):
-    street: str
-    building: str
-    apartment_number: str
-
-class AddressCreate(AddressBase):
-    pass
-
-class AddressResponse(AddressBase):
+class UserResponse(UserBase):
     id: int
-
+    is_admin: bool
     class Config:
         from_attributes = True
 
-# ==========================================
-# APARTMENT (Апартаменти / Житло)
-# ==========================================
-class ApartmentBase(BaseModel):
-    area: Decimal
+# --- PROPERTIES ---
+class PropertyBase(BaseModel):
+    title: str
+    description: str
     price: Decimal
-    room_count: int
-    address_id: int
+    city: str
+    address: str
+    is_active: bool = True
+
+class PropertyCreate(PropertyBase):
+    pass # Власник буде братися з токена авторизації (поки що можна передавати owner_id)
+
+class PropertyUpdateStatus(BaseModel):
+    is_active: bool
+
+class PropertyResponse(PropertyBase):
+    id: int
     owner_id: int
-
-class ApartmentCreate(ApartmentBase):
-    pass
-
-class ApartmentResponse(ApartmentBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-# ==========================================
-# CONTRACT (Договір)
-# ==========================================
-class ContractBase(BaseModel):
-    apartment_id: int
-    client_id: int
-    realtor_id: int
-    contract_date: date
-    total_sum: Decimal
-
-class ContractCreate(ContractBase):
-    pass
-
-class ContractResponse(ContractBase):
-    id: int
+    owner: UserResponse  # Щоб в картці об'єкта одразу був телефон/телеграм власника
+    photos: List[PhotoResponse] = []
 
     class Config:
         from_attributes = True

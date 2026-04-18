@@ -1,85 +1,91 @@
 from sqlalchemy.orm import Session
+from typing import Optional
 import models, schemas
+# --- USERS ---
+def get_user(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.id == user_id).first()
 
-# ==========================================
-# ADDRESS (Адреси)
-# ==========================================
-def create_address(db: Session, address: schemas.AddressCreate):
-    db_address = models.Address(**address.model_dump())
-    db.add(db_address)
-    db.commit()
-    db.refresh(db_address)
-    return db_address
+def get_user_by_email(db: Session, email: str):
+    return db.query(models.User).filter(models.User.email == email).first()
 
-def get_address(db: Session, address_id: int):
-    return db.query(models.Address).filter(models.Address.id == address_id).first()
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.User).offset(skip).limit(limit).all()
 
-
-# ==========================================
-# PERSON / ROLES (Користувачі та їх ролі)
-# ==========================================
-def create_owner(db: Session, person: schemas.PersonCreate):
-    # 1. Спочатку створюємо базовий запис у таблиці Person
-    db_person = models.Person(**person.model_dump())
-    db.add(db_person)
-    db.commit()
-    db.refresh(db_person)
+def create_user(db: Session, user: schemas.UserCreate):
+    # Увага: Для реального проєкту тут має бути хешування пароля (наприклад, bcrypt)
+    # Поки що для MVP залишаємо як є, щоб швидко протестувати
+    fake_hashed_password = user.password 
     
-    # 2. Потім створюємо запис у таблиці Owner, прив'язаний по ID
-    db_owner = models.Owner(id=db_person.id)
-    db.add(db_owner)
+    db_user = models.User(
+        email=user.email,
+        hashed_password=fake_hashed_password,
+        name=user.name,
+        phone=user.phone,
+        telegram_link=user.telegram_link
+    )
+    db.add(db_user)
     db.commit()
-    db.refresh(db_owner)
-    
-    return db_person # Повертаємо дані Person, оскільки ID співпадають
+    db.refresh(db_user)
+    return db_user
 
-def get_person(db: Session, person_id: int):
-    return db.query(models.Person).filter(models.Person.id == person_id).first()
-
-
-# ==========================================
-# APARTMENT (Об'єкти нерухомості - Повний CRUD)
-# ==========================================
-def create_apartment(db: Session, apartment: schemas.ApartmentCreate):
-    db_apartment = models.Apartment(**apartment.model_dump())
-    db.add(db_apartment)
-    db.commit()
-    db.refresh(db_apartment)
-    return db_apartment
-
-def get_apartment(db: Session, apartment_id: int):
-    return db.query(models.Apartment).filter(models.Apartment.id == apartment_id).first()
-
-def get_apartments(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Apartment).offset(skip).limit(limit).all()
-
-def update_apartment(db: Session, apartment_id: int, apartment_data: schemas.ApartmentCreate):
-    db_apartment = get_apartment(db, apartment_id)
-    if db_apartment:
-        # Оновлюємо поля динамічно
-        for key, value in apartment_data.model_dump().items():
-            setattr(db_apartment, key, value)
+def update_user(db: Session, user_id: int, user_data: schemas.UserUpdate):
+    db_user = get_user(db, user_id)
+    if db_user:
+        # Оновлюємо лише ті поля, які були передані
+        update_data = user_data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(db_user, key, value)
+        
         db.commit()
-        db.refresh(db_apartment)
-    return db_apartment
+        db.refresh(db_user)
+    return db_user
 
-def delete_apartment(db: Session, apartment_id: int):
-    db_apartment = get_apartment(db, apartment_id)
-    if db_apartment:
-        db.delete(db_apartment)
+def delete_user(db: Session, user_id: int):
+    db_user = get_user(db, user_id)
+    if db_user:
+        db.delete(db_user)
         db.commit()
-    return db_apartment
+    return db_user
+# --- PROPERTIES ---
+def get_properties(
+    db: Session, 
+    city: Optional[str] = None, 
+    min_price: Optional[float] = None, 
+    max_price: Optional[float] = None,
+    only_active: bool = True
+):
+    # Починаємо формувати запит
+    query = db.query(models.Property)
 
+    # Показувати тільки активні (для стрічки орендаря)
+    if only_active:
+        query = query.filter(models.Property.is_active == True)
 
-# ==========================================
-# CONTRACT (Договори)
-# ==========================================
-def create_contract(db: Session, contract: schemas.ContractCreate):
-    db_contract = models.Contract(**contract.model_dump())
-    db.add(db_contract)
+    # Фільтр по місту (якщо передано)
+    if city:
+        query = query.filter(models.Property.city.ilike(f"%{city}%"))
+
+    # Фільтр по мінімальній ціні
+    if min_price is not None:
+        query = query.filter(models.Property.price >= min_price)
+
+    # Фільтр по максимальній ціні
+    if max_price is not None:
+        query = query.filter(models.Property.price <= max_price)
+
+    return query.all()
+
+def create_property(db: Session, property: schemas.PropertyCreate, owner_id: int):
+    db_property = models.Property(**property.model_dump(), owner_id=owner_id)
+    db.add(db_property)
     db.commit()
-    db.refresh(db_contract)
-    return db_contract
+    db.refresh(db_property)
+    return db_property
 
-def get_contracts(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Contract).offset(skip).limit(limit).all()
+def update_property_status(db: Session, property_id: int, is_active: bool):
+    db_property = db.query(models.Property).filter(models.Property.id == property_id).first()
+    if db_property:
+        db_property.is_active = is_active
+        db.commit()
+        db.refresh(db_property)
+    return db_property

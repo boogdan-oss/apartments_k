@@ -1,22 +1,26 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import apartments
-# from routers import contracts # Підключите, коли створите роутер для договорів
 
-# Створюємо таблиці в базі даних, якщо їх там ще немає
+# 1. Додаємо імпорт users
+from routers import properties, users 
+
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="Real Estate Agency API",
-    description="Документація (Swagger) для курсового проєкту агенції нерухомості",
-    version="1.0.0"
+app = FastAPI(title="Real Estate Agency API", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Підключаємо роутери
-app.include_router(apartments.router)
-#app.include_router(contracts.router)
-
+# 2. Підключаємо роутер користувачів
+app.include_router(properties.router)
+app.include_router(users.router) 
 
 @app.get("/")
 def root():
-    return {"message": "API агенції нерухомості працює! Перейдіть на /docs для перегляду Swagger."}
+    return {"message": "API агенції нерухомості працює!"}
