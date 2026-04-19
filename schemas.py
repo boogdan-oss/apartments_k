@@ -17,6 +17,8 @@ class PersonBase(BaseModel):
 class PersonCreate(PersonBase):
     # Поле потрібне тільки якщо role == tenant (орендар), бо воно йде в таблицю Client
     id_card_series: Optional[str] = None 
+    password: str
+    
 
 class PersonUpdate(BaseModel):
     name: Optional[str] = None
@@ -79,3 +81,11 @@ class ContractResponse(ContractBase):
     id: int
     class Config:
         from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+        

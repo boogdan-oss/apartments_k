@@ -7,7 +7,8 @@ from database import Base
 class UserRole(str, enum.Enum):
     admin = "admin"           # Адміністратор
     tenant = "tenant"         # Орендар (клієнт)
-    landlord = "landlord"     # Орендодавець (власник)
+    owner = "owner"     # Орендодавець (власник)
+    realtor= "realtor"
 
 class Person(Base):
     __tablename__ = 'person'
@@ -15,11 +16,10 @@ class Person(Base):
     name = Column(String(50), nullable=False)
     surname = Column(String(50), nullable=False)
     middle_name = Column(String(50))
-    email = Column(String(100), unique=True)
+    email = Column(String(100), unique=True,nullable=False)
+    hashed_password = Column(String(255), nullable=False)
     phone_number = Column(String(20), nullable=False, unique=True)
     date_of_birth = Column(Date)
-    
-    # 2. Додаємо поле role
     role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.tenant)
 
 # Далі йдуть ваші інші таблиці без змін...

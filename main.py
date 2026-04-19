@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 
 # Підключаємо роутер квартир
-from routers import apartments,users
+from routers import apartments,users,auth
 
 
 
@@ -21,7 +21,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Реєструємо роутер
+
+app.include_router(auth.router)
 app.include_router(apartments.router)
 app.include_router(users.router)
 @app.get("/")
