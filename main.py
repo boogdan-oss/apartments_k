@@ -7,7 +7,7 @@ from routers import apartments,users,auth
 
 
 
-# Цей рядок створить їх наново з новими колонками
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Real Estate Agency API", version="2.0.0")
