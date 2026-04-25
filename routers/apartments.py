@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-
+from models import Apartment
 import crud, schemas, models
 from database import get_db
 
@@ -32,6 +32,29 @@ def get_apartment(apartment_id: int, db: Session = Depends(get_db)):
     if db_apartment is None:
         raise HTTPException(status_code=404, detail="Квартиру не знайдено")
     return db_apartment
+
+@router.get("/listing/{listing_id}")
+def get_listing_details(listing_id: int, db: Session = Depends(get_db)):
+    # Шукаємо квартиру
+    listing = db.query(Apartment).filter(Apartment.id == listing_id).first()
+    
+    if not listing:
+        raise HTTPException(status_code=404, detail="Квартиру не знайдено")
+        
+    # Формуємо красиву відповідь (включаємо дані з relationship 'owner')
+    return {
+        "id": listing.id,
+        "title": listing.name,
+        "price": listing.price,
+        "description": listing.description,
+        "img": listing.img,
+        # Дані власника беремо зі зв'язаної таблиці!
+        "owner": {
+            "name": listing.owner.name,
+            "surname": listing.owner.surname,
+            "email": listing.owner.email
+        }
+    }
 
 @router.patch("/{apartment_id}", response_model=schemas.ApartmentResponse)
 def update_apartment(apartment_id: int, apartment_data: schemas.ApartmentUpdate, db: Session = Depends(get_db)):

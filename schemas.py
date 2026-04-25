@@ -47,10 +47,15 @@ class AddressResponse(AddressBase):
 
 # --- APARTMENT ---
 class ApartmentBase(BaseModel):
+    title: str               # ДОДАНО: Заголовок
+    description: str         # ДОДАНО: Опис
+    city: str                # ДОДАНО: Місто
+    type: str                # ДОДАНО: Тип житла (квартира/будинок)
+    img: Optional[str] = None # ДОДАНО: Посилання на фото
     area: Decimal
     price: Decimal
     room_count: int
-    address_id: int
+    address_id: Optional[int] = None # Зробили необов'язковим для спрощення
     owner_id: int
 
 class ApartmentCreate(ApartmentBase):

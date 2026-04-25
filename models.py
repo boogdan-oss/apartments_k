@@ -53,6 +53,11 @@ class Address(Base):
 class Apartment(Base):
     __tablename__ = 'apartment'
     id = Column(Integer, primary_key=True, index=True)
+    title=Column(String,nullable=False)
+    description=Column(String)
+    city=Column(String)
+    type=Column(String,nullable=False)
+    img=Column(String,nullable=True)
     area = Column(Numeric(10, 2), nullable=False)
     price = Column(Numeric(15, 0), nullable=False)
     room_count = Column(Integer, nullable=False)
