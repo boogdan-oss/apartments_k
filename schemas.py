@@ -15,7 +15,7 @@ class PersonBase(BaseModel):
     role: UserRole # Додали роль
 
 class PersonCreate(PersonBase):
-    # Поле потрібне тільки якщо role == tenant (орендар), бо воно йде в таблицю Client
+   
     id_card_series: Optional[str] = None 
     password: str
     
@@ -55,6 +55,7 @@ class ApartmentBase(BaseModel):
     area: Decimal
     price: Decimal
     room_count: int
+    street:Optional[str]=None
     address_id: Optional[int] = None # Зробили необов'язковим для спрощення
     owner_id: int
 
@@ -75,12 +76,16 @@ class ApartmentResponse(ApartmentBase):
 class ContractBase(BaseModel):
     apartment_id: int
     client_id: int
-    realtor_id: int
     contract_date: date
     total_sum: Decimal
 
-class ContractCreate(ContractBase):
-    pass
+class ContractCreate(BaseModel):
+    apartment_id: int
+    total_sum: Decimal
+   
+
+class ContractStatusUpdate(BaseModel):
+    status: str # Сюди будемо передавати "approved" або "rejected"
 
 class ContractResponse(ContractBase):
     id: int

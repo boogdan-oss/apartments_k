@@ -16,9 +16,9 @@ def create_apartment(apartment: schemas.ApartmentCreate, db: Session = Depends(g
     if not db.query(models.Owner).filter(models.Owner.id == apartment.owner_id).first():
         raise HTTPException(status_code=404, detail="Власник не знайдений")
         
-    # Перевіряємо чи існує адреса (Address)
-    if not db.query(models.Address).filter(models.Address.id == apartment.address_id).first():
-        raise HTTPException(status_code=404, detail="Адреса не знайдена")
+   
+    # if not db.query(models.Address).filter(models.Address.id == apartment.address_id).first():
+    #     raise HTTPException(status_code=404, detail="Адреса не знайдена")
 
     return crud.create_apartment(db=db, apartment=apartment)
 
@@ -41,18 +41,18 @@ def get_listing_details(listing_id: int, db: Session = Depends(get_db)):
     if not listing:
         raise HTTPException(status_code=404, detail="Квартиру не знайдено")
         
-    # Формуємо красиву відповідь (включаємо дані з relationship 'owner')
+    
     return {
         "id": listing.id,
-        "title": listing.name,
+        "title": listing.title,
         "price": listing.price,
         "description": listing.description,
         "img": listing.img,
         # Дані власника беремо зі зв'язаної таблиці!
         "owner": {
-            "name": listing.owner.name,
-            "surname": listing.owner.surname,
-            "email": listing.owner.email
+            "name": listing.owner.person.name,
+            "surname": listing.owner.person.surname,
+            "email": listing.owner.person.email
         }
     }
 

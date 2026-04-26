@@ -8,7 +8,7 @@ class UserRole(str, enum.Enum):
     admin = "admin"           # Адміністратор
     tenant = "tenant"         # Орендар (клієнт)
     owner = "owner"     # Орендодавець (власник)
-    realtor= "realtor"
+    
 
 class Person(Base):
     __tablename__ = 'person'
@@ -35,12 +35,7 @@ class Client(Base):
     id_card_series = Column(String(20), nullable=False, unique=True)
     person = relationship("Person")
 
-class Realtor(Base):
-    __tablename__ = 'realtor'
-    id = Column(Integer, ForeignKey('person.id', ondelete='CASCADE'), primary_key=True)
-    work_experience = Column(Integer, default=0)
-    commission_rate = Column(Numeric(5, 2), nullable=False)
-    person = relationship("Person")
+
 
 class Address(Base):
     __tablename__ = 'address'
@@ -71,6 +66,6 @@ class Contract(Base):
     id = Column(Integer, primary_key=True, index=True)
     apartment_id = Column(Integer, ForeignKey('apartment.id', ondelete='RESTRICT'), nullable=False)
     client_id = Column(Integer, ForeignKey('client.id', ondelete='RESTRICT'), nullable=False)
-    realtor_id = Column(Integer, ForeignKey('realtor.id', ondelete='RESTRICT'), nullable=False)
     contract_date = Column(Date, nullable=False)
     total_sum = Column(Numeric(15, 2), nullable=False)
+    status = Column(String, default="pending")

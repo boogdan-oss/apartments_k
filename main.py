@@ -1,13 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-
-# Підключаємо роутер квартир
-from routers import apartments,users,auth
-
-
-
-
+from routers import apartments,users,auth,contracts
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Real Estate Agency API", version="2.0.0")
@@ -25,6 +19,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(apartments.router)
 app.include_router(users.router)
+app.include_router(contracts.router)
 @app.get("/")
 def root():
     return {"message": "API працює! Складна архітектура підключена."}
@@ -32,5 +27,5 @@ def root():
 def health_check():
     return {
         "status": "ok", 
-        "message": "Бекенд успішно з'єднано з фронтендом! 🚀"
+        "message": "Бекенд успішно з'єднано з фронтендом! "
     }

@@ -7,7 +7,10 @@ from config import settings
 # Ваш пароль та порт для локального Postgres (зазвичай порт 5432)
 SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_pre_ping=True  # <--- ОСЬ ЦЕЙ РЯДОК ВРЯТУЄ ВІД ПОМИЛКИ
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
