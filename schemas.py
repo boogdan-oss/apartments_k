@@ -55,7 +55,7 @@ class ApartmentBase(BaseModel):
     area: Decimal
     price: Decimal
     room_count: int
-    street:Optional[str]=None
+    status: Optional[str] = "active"
     address_id: Optional[int] = None # Зробили необов'язковим для спрощення
     owner_id: int
 
@@ -66,6 +66,7 @@ class ApartmentUpdate(BaseModel):
     area: Optional[Decimal] = None
     price: Optional[Decimal] = None
     room_count: Optional[int] = None
+    status: Optional[str]=None
 
 class ApartmentResponse(ApartmentBase):
     id: int

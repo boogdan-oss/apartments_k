@@ -45,6 +45,19 @@ class Address(Base):
     apartment_number = Column(String(10), nullable=False)
     apartments = relationship("Apartment", back_populates="address")
 
+class Favorite(Base):
+    __tablename__ = "favorites"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE")) # або "users.id", як у вас названа таблиця
+    apartment_id = Column(Integer, ForeignKey("apartment.id", ondelete="CASCADE"))
+    
+    # Зв'язки, щоб легко діставати дані
+    user = relationship("Person") 
+    apartment = relationship("Apartment")
+
+
+
 class Apartment(Base):
     __tablename__ = 'apartment'
     id = Column(Integer, primary_key=True, index=True)
@@ -56,10 +69,12 @@ class Apartment(Base):
     area = Column(Numeric(10, 2), nullable=False)
     price = Column(Numeric(15, 0), nullable=False)
     room_count = Column(Integer, nullable=False)
+    status = Column(String, default="active")
     address_id = Column(Integer, ForeignKey('address.id', ondelete='RESTRICT'), nullable=False)
     owner_id = Column(Integer, ForeignKey('owner.id', ondelete='RESTRICT'), nullable=False)
     address = relationship("Address", back_populates="apartments")
     owner = relationship("Owner", back_populates="apartments")
+
 
 class Contract(Base):
     __tablename__ = 'contract'
@@ -69,3 +84,6 @@ class Contract(Base):
     contract_date = Column(Date, nullable=False)
     total_sum = Column(Numeric(15, 2), nullable=False)
     status = Column(String, default="pending")
+
+
+    
