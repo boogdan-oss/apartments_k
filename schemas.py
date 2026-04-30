@@ -3,8 +3,8 @@ from typing import Optional
 from datetime import date
 from decimal import Decimal
 from models import UserRole
+#валідація.структура,репка і модулі
 
-# --- PERSON ---
 class PersonBase(BaseModel):
     name: str
     surname: str
@@ -12,7 +12,7 @@ class PersonBase(BaseModel):
     email: Optional[str] = None
     phone_number: str
     date_of_birth: Optional[date] = None
-    role: UserRole # Додали роль
+    role: UserRole 
 
 class PersonCreate(PersonBase):
    
@@ -31,7 +31,7 @@ class PersonResponse(PersonBase):
     class Config:
         from_attributes = True
 
-# --- ADDRESS ---
+
 class AddressBase(BaseModel):
     street: str
     building: str
@@ -47,11 +47,11 @@ class AddressResponse(AddressBase):
 
 # --- APARTMENT ---
 class ApartmentBase(BaseModel):
-    title: str               # ДОДАНО: Заголовок
-    description: str         # ДОДАНО: Опис
-    city: str                # ДОДАНО: Місто
-    type: str                # ДОДАНО: Тип житла (квартира/будинок)
-    img: Optional[str] = None # ДОДАНО: Посилання на фото
+    title: str              
+    description: str        
+    city: str               
+    type: str               
+    img: Optional[str] = None 
     area: Decimal
     price: Decimal
     room_count: int
@@ -63,6 +63,7 @@ class ApartmentCreate(ApartmentBase):
     pass
 
 class ApartmentUpdate(BaseModel):
+    title: Optional[str] = None
     area: Optional[Decimal] = None
     price: Optional[Decimal] = None
     room_count: Optional[int] = None
@@ -73,23 +74,27 @@ class ApartmentResponse(ApartmentBase):
     class Config:
         from_attributes = True
 
-# --- CONTRACT ---
+
 class ContractBase(BaseModel):
     apartment_id: int
-    client_id: int
-    contract_date: date
+    owner_id: int
+    
+    start_date: date
+    end_date: date
+    price: Decimal
     total_sum: Decimal
 
-class ContractCreate(BaseModel):
-    apartment_id: int
-    total_sum: Decimal
-   
+class ContractCreate(ContractBase):
+    pass # Бере всі поля з ContractBase (фронтенд відправляє саме їх)
 
 class ContractStatusUpdate(BaseModel):
-    status: str # Сюди будемо передавати "approved" або "rejected"
+    status: str 
 
 class ContractResponse(ContractBase):
     id: int
+    tenant_id: int # Це поле додає сам бекенд з токена
+    status: str    # Це поле теж додає бекенд ("в процесі")
+    
     class Config:
         from_attributes = True
 

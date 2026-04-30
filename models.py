@@ -3,12 +3,16 @@ from sqlalchemy import Column, Integer, String, Date, Numeric, ForeignKey, Enum 
 from sqlalchemy.orm import relationship
 from database import Base
 
-# 1. Створюємо перелік (Enum) для ролей
+
 class UserRole(str, enum.Enum):
     admin = "admin"           # Адміністратор
     tenant = "tenant"         # Орендар (клієнт)
     owner = "owner"     # Орендодавець (власник)
     
+class ApartmentStatus(str,enum.Enum):
+    active="active"
+    pending="pending"
+    banned="banned"    
 
 class Person(Base):
     __tablename__ = 'person'
@@ -49,7 +53,7 @@ class Favorite(Base):
     __tablename__ = "favorites"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE")) # або "users.id", як у вас названа таблиця
+    user_id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE")) 
     apartment_id = Column(Integer, ForeignKey("apartment.id", ondelete="CASCADE"))
     
     # Зв'язки, щоб легко діставати дані
@@ -76,14 +80,20 @@ class Apartment(Base):
     owner = relationship("Owner", back_populates="apartments")
 
 
-class Contract(Base):
-    __tablename__ = 'contract'
-    id = Column(Integer, primary_key=True, index=True)
-    apartment_id = Column(Integer, ForeignKey('apartment.id', ondelete='RESTRICT'), nullable=False)
-    client_id = Column(Integer, ForeignKey('client.id', ondelete='RESTRICT'), nullable=False)
-    contract_date = Column(Date, nullable=False)
-    total_sum = Column(Numeric(15, 2), nullable=False)
-    status = Column(String, default="pending")
 
+
+class Contract(Base):
+    __tablename__ = "contract"
+    id = Column(Integer, primary_key=True, index=True)
+    apartment_id = Column(Integer, ForeignKey("apartment.id"))
+    owner_id = Column(Integer, ForeignKey("person.id")) 
+    tenant_id = Column(Integer, ForeignKey("person.id"))
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    price = Column(Numeric(15), nullable=False)
+    status = Column(String, default="в процесі") 
+    apartment = relationship("Apartment")
+    owner = relationship("Person", foreign_keys=[owner_id])
+    tenant = relationship("Person", foreign_keys=[tenant_id])
 
     

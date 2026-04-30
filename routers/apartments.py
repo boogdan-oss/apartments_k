@@ -11,21 +11,85 @@ router = APIRouter(
     tags=["Apartments"]
 )
 
-@router.post("/", response_model=schemas.ApartmentResponse, status_code=status.HTTP_201_CREATED)
-def create_apartment(apartment: schemas.ApartmentCreate, db: Session = Depends(get_db)):
-    # Перевіряємо чи існує власник (Owner)
-    if not db.query(models.Owner).filter(models.Owner.id == apartment.owner_id).first():
-        raise HTTPException(status_code=404, detail="Власник не знайдений")
-        
-   
-    # if not db.query(models.Address).filter(models.Address.id == apartment.address_id).first():
-    #     raise HTTPException(status_code=404, detail="Адреса не знайдена")
 
-    return crud.create_apartment(db=db, apartment=apartment)
+
+@router.post("/",response_model=schemas.ApartmentResponse)
+def create_apartmet_new(
+    apartment: schemas.ApartmentCreate,
+    db:Session=Depends(get_db),
+    current_user:models.Person=Depends(get_current_user)
+    ):
+    new_apartment=models.Apartment(
+        title=apartment.title,
+        description=apartment.description,
+        city=apartment.city,
+        type=apartment.type,
+        img=apartment.img,
+        area=apartment.area,
+        price=apartment.price,
+        room_count=apartment.room_count,
+        owner_id=current_user.id,
+        address_id=apartment.address_id,
+        status="pending"
+
+
+    )
+    db.add(new_apartment)
+    db.commit()
+    db.refresh(new_apartment)
+    return new_apartment
+
+
+
+@router.put("/{apartment_id}", response_model=schemas.ApartmentResponse)
+def update_apartment(
+    apartment_id: int, 
+    apartment_data: schemas.ApartmentUpdate, 
+    db: Session = Depends(get_db)
+    # current_user: models.Person = Depends(get_current_user) # Можна додати перевірку, що це адмін
+):
+    # 1. Шукаємо квартиру в базі
+    db_apartment = db.query(models.Apartment).filter(models.Apartment.id == apartment_id).first()
+    
+    if not db_apartment:
+        raise HTTPException(status_code=404, detail="Оголошення не знайдено")
+
+    # 2. Оновлюємо тільки ті поля, які прислав фронтенд
+    update_data = apartment_data.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_apartment, key, value)
+
+    # 3. Зберігаємо зміни
+    db.commit()
+    db.refresh(db_apartment)
+    
+    return db_apartment
+
+@router.get("/my-listings", response_model=List[schemas.ApartmentResponse])
+def get_my_listings(db: Session = Depends(get_db), current_user: models.Person = Depends(get_current_user)):
+    owner_record = db.query(models.Owner).filter(models.Owner.id == current_user.id).first()
+    
+    if not owner_record:
+        return [] # Якщо він ще нічого не виставив
+   
+    return db.query(models.Apartment).filter(models.Apartment.owner_id == owner_record.id).all()
+
+
+
+@router.get("/favorites", response_model=List[schemas.ApartmentResponse])
+def get_my_favorites(db: Session = Depends(get_db), current_user: models.Person = Depends(get_current_user)):
+    # Знаходимо всі записи в таблиці favorites для цього юзера
+    favorites = db.query(models.Favorite).filter(models.Favorite.user_id == current_user.id).all()
+    
+   
+    return [fav.apartment for fav in favorites]
+
 
 @router.get("/", response_model=List[schemas.ApartmentResponse])
 def read_apartments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_apartments(db, skip=skip, limit=limit)
+    # return crud.get_apartments(db, skip=skip, limit=limit)
+         apartments=db.query(models.Apartment).filter(models.Apartment.status=="active").all()
+         return apartments
 
 @router.get("/{apartment_id}", response_model=schemas.ApartmentResponse)
 def get_apartment(apartment_id: int, db: Session = Depends(get_db)):
@@ -74,30 +138,7 @@ def delete_apartment(apartment_id: int, db: Session = Depends(get_db)):
     return
 
 #---------------------------------------------------------------------------------------
-# 1. ОТРИМАТИ СВОЇ ОГОЛОШЕННЯ (Для власника)
-@router.get("/my-listings", response_model=List[schemas.ApartmentResponse])
-def get_my_listings(db: Session = Depends(get_db), current_user: models.Person = Depends(get_current_user)):
-    # Шукаємо квартири, де owner_id збігається з ID поточного користувача
-    # Якщо у вас власники в окремій таблиці Owner, спочатку знаходимо запис Owner для цього користувача
-    owner_record = db.query(models.Owner).filter(models.Owner.person_id == current_user.id).first()
-    
-    if not owner_record:
-        return [] # Якщо він ще нічого не виставив
-        
-    return db.query(models.Apartment).filter(models.Apartment.owner_id == owner_record.id).all()
 
-
-# 2. ДОДАТИ В УЛЮБЛЕНЕ (для Орендаря)
-
-
-# 3. ОТРИМАТИ СПИСОК УЛЮБЛЕНИХ (для Орендаря)
-@router.get("/favorites", response_model=List[schemas.ApartmentResponse])
-def get_my_favorites(db: Session = Depends(get_db), current_user: models.Person = Depends(get_current_user)):
-    # Знаходимо всі записи в таблиці favorites для цього юзера
-    favorites = db.query(models.Favorite).filter(models.Favorite.user_id == current_user.id).all()
-    
-    # Витягуємо самі об'єкти квартир із цих записів
-    return [fav.apartment for fav in favorites]
 
 
 @router.post("/favorites/{apartment_id}")
