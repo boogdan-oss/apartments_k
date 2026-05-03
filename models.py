@@ -19,7 +19,6 @@ class Person(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=False)
     surname = Column(String(50), nullable=False)
-    middle_name = Column(String(50))
     email = Column(String(100), unique=True,nullable=False)
     hashed_password = Column(String(255), nullable=False)
     phone_number = Column(String(20), nullable=False, unique=True)

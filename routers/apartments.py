@@ -30,12 +30,15 @@ def create_apartmet_new(
         room_count=apartment.room_count,
         owner_id=current_user.id,
         address_id=apartment.address_id,
-        status="pending"
-
+       status=models.ApartmentStatus.pending
 
     )
     db.add(new_apartment)
+    if current_user.role=="tenant":
+        current_user.role="owner" 
+        db.add(current_user)
     db.commit()
+
     db.refresh(new_apartment)
     return new_apartment
 
@@ -136,6 +139,31 @@ def delete_apartment(apartment_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Квартиру не знайдено")
     crud.delete_apartment(db, apartment_id=apartment_id)
     return
+
+from fastapi import HTTPException, status
+
+@router.delete("/listing/{apartment_id}")
+def delete_apartment(
+    apartment_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.Person = Depends(get_current_user)
+):
+    # 1. Шукаємо квартиру в базі
+    apartment = db.query(models.Apartment).filter(models.Apartment.id == apartment_id).first()
+    
+    # 2. Якщо такої квартири немає
+    if not apartment:
+        raise HTTPException(status_code=404, detail="Оголошення не знайдено")
+        
+   
+    if apartment.owner_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Ви не можете видалити чуже оголошення!")
+
+    # 4. Видаляємо з бази
+    db.delete(apartment)
+    db.commit()
+    
+    return {"message": "Оголошення успішно видалено"}
 
 #---------------------------------------------------------------------------------------
 
