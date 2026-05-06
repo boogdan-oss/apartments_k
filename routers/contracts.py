@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 import models, schemas
-from routers.auth import get_current_user # Ваш імпорт перевірки токена
+from routers.auth import get_current_user 
 
 router = APIRouter(prefix="/api/contracts", tags=["Contracts"])
 
-# 1. СТВОРЕННЯ ЗАЯВКИ (ОРЕНДАР)
+
 @router.post("/")
 def create_contract(
     contract_data: schemas.ContractCreate, 
@@ -34,7 +34,7 @@ def get_my_contracts(db: Session = Depends(get_db), current_user: models.Person 
         (models.Contract.tenant_id == current_user.id) | 
         (models.Contract.owner_id == current_user.id)
     ).all()
-# 3. ПІДТВЕРДЖЕННЯ / ВІДМОВА (ВЛАСНИК)
+
 @router.patch("/{contract_id}/status")
 def update_contract_status(contract_id: int, status_update: schemas.ContractStatusUpdate, db: Session = Depends(get_db), current_user: models.Person = Depends(get_current_user)):
     if current_user.role != "owner":

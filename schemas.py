@@ -16,7 +16,7 @@ class PersonBase(BaseModel):
 
 class PersonCreate(PersonBase):
    
-    id_card_series: Optional[str] = None 
+    id_card_series: str
     password: str
     
 

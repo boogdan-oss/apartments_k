@@ -19,6 +19,10 @@ def create_apartmet_new(
     db:Session=Depends(get_db),
     current_user:models.Person=Depends(get_current_user)
     ):
+    if current_user.role == models.UserRole.client:
+        current_user.role = models.UserRole.owner  # або "owner" якщо не enum
+        db.add(current_user)
+    
     new_apartment=models.Apartment(
         title=apartment.title,
         description=apartment.description,
@@ -34,9 +38,7 @@ def create_apartmet_new(
 
     )
     db.add(new_apartment)
-    if current_user.role=="tenant":
-        current_user.role="owner" 
-        db.add(current_user)
+    
     db.commit()
 
     db.refresh(new_apartment)
@@ -119,9 +121,9 @@ def get_listing_details(listing_id: int, db: Session = Depends(get_db)):
         "type":listing.type,
         # Дані власника беремо зі зв'язаної таблиці!
         "owner": {
-            "name": listing.owner.person.name,
-            "surname": listing.owner.person.surname,
-            "email": listing.owner.person.email
+            "name": listing.owner.name,
+            "surname": listing.owner.surname,
+            "email": listing.owner.email
         }
     }
 

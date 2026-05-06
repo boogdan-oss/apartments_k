@@ -6,7 +6,11 @@ from sqladmin import Admin
 from admin import PersonAdmin,ApartmentAdmin,ContractAdmin
 from fastapi.staticfiles import StaticFiles
 import os
+from sqlalchemy import text
+
+
 Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(title="Real Estate Agency API", version="1.0.0")
 
