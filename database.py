@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from config import settings
+from sqlalchemy.orm import DeclarativeBase
 
 # Ваш пароль та порт для локального Postgres (зазвичай порт 5432)
 SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
@@ -13,8 +14,8 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
-
+class Base(DeclarativeBase):
+    pass
 def get_db():
     db = SessionLocal()
     try:

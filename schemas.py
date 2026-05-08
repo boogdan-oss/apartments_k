@@ -11,12 +11,13 @@ class PersonBase(BaseModel):
     middle_name: Optional[str] = None
     email: Optional[str] = None
     phone_number: str
+    id_card_series: str
     date_of_birth: Optional[date] = None
     role: UserRole 
 
 class PersonCreate(PersonBase):
    
-    id_card_series: str
+    
     password: str
     
 
@@ -55,9 +56,9 @@ class ApartmentBase(BaseModel):
     area: Decimal
     price: Decimal
     room_count: int
-    status: Optional[str] = "active"
+    # status: Optional[str] 
     address_id: Optional[int] = None # Зробили необов'язковим для спрощення
-    owner_id: int
+   
 
 class ApartmentCreate(ApartmentBase):
     pass
@@ -71,6 +72,7 @@ class ApartmentUpdate(BaseModel):
 
 class ApartmentResponse(ApartmentBase):
     id: int
+    owner_id: int
     class Config:
         from_attributes = True
 

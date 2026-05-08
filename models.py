@@ -278,7 +278,6 @@ class Client(Person):
     id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"), primary_key=True)
 
     # Поле специфічне тільки для орендаря
-    id_card_series_extra = Column(String(20), unique=True, nullable=True)
 
     __mapper_args__ = {
         "polymorphic_identity": UserRole.client,
@@ -308,12 +307,12 @@ class Apartment(Base):
     city       = Column(String(100))
     type       = Column(String(50),  nullable=False)
     img        = Column(String(500),  nullable=True)
-    area       = Column(Numeric(10, 2), nullable=False)
-    price      = Column(Numeric(15, 0), nullable=False)
-    room_count = Column(Integer, nullable=False)
-    status     = Column(String(20), default="active")
+    area=Column(Numeric(10, 2), nullable=False)
+    price=Column(Numeric(15, 0), nullable=False)
+    room_count= Column(Integer, nullable=False)
+    status=Column(String(20), default="active")
     address_id = Column(Integer, ForeignKey("address.id", ondelete="RESTRICT"), nullable=False)
-    owner_id   = Column(Integer, ForeignKey("person.id", ondelete="RESTRICT"),  nullable=False)
+    owner_id = Column(Integer, ForeignKey("person.id", ondelete="RESTRICT"),  nullable=False)
 
     address = relationship("Address", back_populates="apartments")
     owner   = relationship("Owner", foreign_keys=[owner_id], back_populates="apartments")

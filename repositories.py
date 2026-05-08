@@ -1,7 +1,7 @@
-from typing import List, Optional
+from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-
+from sqlalchemy import insert
 import models, schemas, auth
 from base_repository import BaseRepository
 
@@ -83,11 +83,29 @@ class OwnerRepository(PersonRepository):
     def get_with_apartments(self, db: Session, owner_id: int) -> Optional[models.Owner]:
         return db.query(models.Owner).filter(models.Owner.id == owner_id).first()
 
-    def promote_from_client(self, db: Session, person: models.Person) -> None:
+    def promote_from_client(self, db: Session, person_id:int) -> None:
         """Змінює роль з client на owner при першому оголошенні."""
+    #     person = db.query(models.Person).filter(models.Person.id == person_id).first()
+    #     person.role = models.UserRole.owner
+    
+    # # Створюємо запис в owner
+    #     owner = models.Owner(id=person_id)
+    #     db.add(owner)
+    #     db.flush()
+
+        person = db.query(models.Person).filter(models.Person.id == person_id).first()
+        if not person:
+             return # або викинути помилку
+    
         person.role = models.UserRole.owner
-        db.add(person)
-        db.flush()
+
+    # 2. Вставляємо запис прямо в таблицю owner, минаючи ORM-мапер успадкування
+        db.execute(
+            insert(models.Owner).values(id=person_id)
+         )
+            
+        db.commit()
+
 
     def demote_to_client(self, db: Session, person: models.Person) -> None:
         """Повертає роль client якщо не залишилось оголошень."""
@@ -118,7 +136,6 @@ class ClientRepository(PersonRepository):
             id_card_series       = schema.id_card_series,
             hashed_password      = auth.get_password_hash(schema.password),
             role                 = models.UserRole.client,  # роль фіксована
-            id_card_series_extra = schema.id_card_series,
         )
         db.add(client)
         db.commit()
@@ -144,10 +161,18 @@ class ApartmentRepository(BaseRepository[models.Apartment, schemas.ApartmentCrea
 
     # ООП: Реалізація abstractmethod create()
     def create(self, db: Session, schema: schemas.ApartmentCreate,
-               owner_id: int = None) -> models.Apartment:
+            owner_id: int = None) -> models.Apartment:
         apartment = models.Apartment(
-            **schema.model_dump(),
-            owner_id=owner_id,
+            title=schema.title,
+            description=schema.description,
+            city=schema.city,
+            type=schema.type,
+            img=schema.img,
+            area=schema.area,
+            price=schema.price,
+            room_count=schema.room_count,
+            address_id=schema.address_id,
+            owner_id=owner_id,  # ✅ явно передаємо
             status="pending",
         )
         db.add(apartment)

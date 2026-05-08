@@ -141,28 +141,7 @@
 
 # from fastapi import HTTPException, status
 
-# @router.delete("/listing/{apartment_id}")
-# def delete_apartment(
-#     apartment_id: int, 
-#     db: Session = Depends(get_db), 
-#     current_user: models.Person = Depends(get_current_user)
-# ):
-#     # 1. Шукаємо квартиру в базі
-#     apartment = db.query(models.Apartment).filter(models.Apartment.id == apartment_id).first()
-    
-#     # 2. Якщо такої квартири немає
-#     if not apartment:
-#         raise HTTPException(status_code=404, detail="Оголошення не знайдено")
-        
-   
-#     if apartment.owner_id != current_user.id and current_user.role != "admin":
-#         raise HTTPException(status_code=403, detail="Ви не можете видалити чуже оголошення!")
 
-#     # 4. Видаляємо з бази
-#     db.delete(apartment)
-#     db.commit()
-    
-#     return {"message": "Оголошення успішно видалено"}
 
 # #---------------------------------------------------------------------------------------
 
@@ -209,8 +188,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-
 import schemas, models
+from models import Apartment
 from database import get_db
 from routers.auth import get_current_user
 from repositories import apartment_repo, owner_repo
@@ -231,6 +210,32 @@ def get_favorites(db: Session = Depends(get_db),
     favs = db.query(models.Favorite).filter(
         models.Favorite.user_id == current_user.id).all()
     return [f.apartment for f in favs]
+
+
+
+@router.get("/listing/{listing_id}")
+def get_listing_details(listing_id: int, db: Session = Depends(get_db)):
+    listing = db.query(Apartment).filter(Apartment.id == listing_id).first()
+    
+    if not listing:
+        raise HTTPException(status_code=404, detail="Квартиру не знайдено")
+        
+    
+    return {
+        "id": listing.id,
+        "title": listing.title,
+        "price": listing.price,
+        "description": listing.description,
+        "img": listing.img,
+        "city":listing.city,
+        "type":listing.type,
+        # Дані власника беремо зі зв'язаної таблиці!
+        "owner": {
+            "name": listing.owner.name,
+            "surname": listing.owner.surname,
+            "email": listing.owner.email
+        }
+    }
 
 
 @router.post("/favorites/{apartment_id}")
@@ -269,7 +274,7 @@ def create_apartment(schema: schemas.ApartmentCreate, db: Session = Depends(get_
                      current_user: models.Person = Depends(get_current_user)):
     # ООП: OwnerRepository підвищує роль при першому оголошенні
     if current_user.role == models.UserRole.client:
-        owner_repo.promote_from_client(db, current_user)
+        owner_repo.promote_from_client(db, current_user.id)
     return apartment_repo.create(db, schema, owner_id=current_user.id)
 
 
@@ -297,3 +302,10 @@ def update_apartment(apartment_id: int, schema: schemas.ApartmentUpdate,
 def delete_apartment(apartment_id: int, db: Session = Depends(get_db),
                      current_user: models.Person = Depends(get_current_user)):
     apartment_repo.delete_with_role_check(db, apartment_id, current_user)
+
+
+
+       
+
+
+

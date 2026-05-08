@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from database import Base
 
 # ООП: Параметричний поліморфізм — Generic типи
-ModelType        = TypeVar("ModelType", bound=Base)
+ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType")
 UpdateSchemaType = TypeVar("UpdateSchemaType")
 
