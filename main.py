@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import apartments,users,auth,contracts,images
+from routers import apartments,users,auth,contracts,images,rewiew
 from sqladmin import Admin
 from admin import PersonAdmin,ApartmentAdmin,ContractAdmin
 from fastapi.staticfiles import StaticFiles
@@ -35,6 +35,7 @@ app.include_router(apartments.router)
 app.include_router(users.router)
 app.include_router(contracts.router)
 app.include_router(images.router)
+app.include_router(rewiew.router)
 
 @app.get("/")
 def root():

@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import date
 from decimal import Decimal
 from models import UserRole
+from datetime import datetime
 #валідація.структура,репка і модулі
 
 class PersonBase(BaseModel):
@@ -77,28 +78,48 @@ class ApartmentResponse(ApartmentBase):
         from_attributes = True
 
 
-class ContractBase(BaseModel):
+class Contract(BaseModel):
     apartment_id: int
     owner_id: int
-    
+    client_id:int
     start_date: date
     end_date: date
-    price: Decimal
-    total_sum: Decimal
+    price: float
+    total_sum: float
 
-class ContractCreate(ContractBase):
+    class Config:
+        from_attributes = True
+
+class ContractCreate(Contract):
     pass # Бере всі поля з ContractBase (фронтенд відправляє саме їх)
 
 class ContractStatusUpdate(BaseModel):
     status: str 
 
-class ContractResponse(ContractBase):
+class ContractResponse(Contract):
     id: int
-    tenant_id: int # Це поле додає сам бекенд з токена
+    owner_id: int # Це поле додає сам бекенд з токена
     status: str    # Це поле теж додає бекенд ("в процесі")
     
     class Config:
         from_attributes = True
+
+
+
+class ReviewCreate(BaseModel):
+    text: str  # тільки текст — автор і квартира беруться з токена і URL
+ 
+ 
+class ReviewResponse(BaseModel):
+    id: int
+    text: str
+    created_at: datetime
+    # Вкладені дані автора — щоб фронт одразу мав ім'я і прізвище
+    author_name: str
+    author_surname: str
+ 
+    class Config:
+        from_attributes = True        
 
 class Token(BaseModel):
     access_token: str

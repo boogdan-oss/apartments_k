@@ -200,8 +200,9 @@
 
 
 import enum
-from sqlalchemy import Column, Integer, String, Date, Numeric, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Date, DateTime, Numeric, ForeignKey, Enum as SQLEnum, Text
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from database import Base
 
 
@@ -210,14 +211,14 @@ from database import Base
 # -------------------------------------------------------
 
 class UserRole(str, enum.Enum):
-    admin  = "admin"
-    client = "client"
-    owner  = "owner"
+    admin="admin"
+    client="client"
+    owner="owner"
 
 class ApartmentStatus(str, enum.Enum):
-    active  = "active"
-    pending = "pending"
-    banned  = "banned"
+    active="active"
+    pending="pending"
+    banned="banned"
 
 
 # -------------------------------------------------------
@@ -229,21 +230,21 @@ class ApartmentStatus(str, enum.Enum):
 class Person(Base):
     __tablename__ = "person"
 
-    id             = Column(Integer, primary_key=True, index=True)
-    name           = Column(String(50),  nullable=False)
-    surname        = Column(String(50),  nullable=False)
-    email          = Column(String(100), unique=True, nullable=False)
+    id=Column(Integer, primary_key=True, index=True)
+    name=Column(String(50),  nullable=False)
+    surname=Column(String(50),  nullable=False)
+    email=Column(String(100), unique=True, nullable=False)
     hashed_password= Column(String(255), nullable=False)
-    phone_number   = Column(String(20),  unique=True, nullable=False)
-    date_of_birth  = Column(Date, nullable=True)
-    id_card_series = Column(String(50),  unique=True, nullable=True)
+    phone_number=Column(String(20),  unique=True, nullable=False)
+    date_of_birth=Column(Date, nullable=True)
+    id_card_series=Column(String(50),  unique=True, nullable=True)
 
     # Дискримінатор поліморфізму: SQLAlchemy дивиться на це поле
     # і вирішує який підклас (Owner / Client / Person) повернути.
     role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.client)
 
     __mapper_args__ = {
-        "polymorphic_on":       role,
+        "polymorphic_on":role,
         "polymorphic_identity": UserRole.admin,  # Person без підкласу = admin
     }
 
@@ -257,7 +258,7 @@ class Owner(Person):
     __tablename__ = "owner"
 
     # id = той самий ідентифікатор що й у Person (one-to-one)
-    id = Column(Integer, ForeignKey("person.id", ondelete="CASCADE"), primary_key=True)
+    id=Column(Integer, ForeignKey("person.id", ondelete="CASCADE"), primary_key=True)
 
     # Специфічний зв'язок тільки у власника
     apartments = relationship("Apartment", foreign_keys="Apartment.owner_id",
@@ -313,7 +314,7 @@ class Apartment(Base):
     status=Column(String(20), default="active")
     address_id = Column(Integer, ForeignKey("address.id", ondelete="RESTRICT"), nullable=False)
     owner_id = Column(Integer, ForeignKey("person.id", ondelete="RESTRICT"),  nullable=False)
-
+    reviews  = relationship("Review", back_populates="apartment", cascade="all, delete-orphan")
     address = relationship("Address", back_populates="apartments")
     owner   = relationship("Owner", foreign_keys=[owner_id], back_populates="apartments")
 
@@ -332,15 +333,29 @@ class Favorite(Base):
 class Contract(Base):
     __tablename__ = "contract"
 
-    id           = Column(Integer, primary_key=True, index=True)
-    apartment_id = Column(Integer, ForeignKey("apartment.id"), nullable=False)
-    owner_id     = Column(Integer, ForeignKey("person.id"),    nullable=False)
-    client_id    = Column(Integer, ForeignKey("person.id"),    nullable=False)
-    start_date   = Column(Date, nullable=False)
-    end_date     = Column(Date, nullable=False)
-    price        = Column(Numeric(15, 2), nullable=False)
-    status       = Column(String(50), default="в процесі")
+    id=Column(Integer, primary_key=True, index=True)
+    apartment_id=Column(Integer, ForeignKey("apartment.id"), nullable=False)
+    owner_id=Column(Integer, ForeignKey("person.id"),    nullable=False)
+    client_id=Column(Integer, ForeignKey("person.id"),    nullable=False)
+    start_date=Column(Date, nullable=False)
+    end_date=Column(Date, nullable=False)
+    price=Column(Numeric(15, 2), nullable=False)
+    status=Column(String(50), default="в процесі")
+    total_sum=Column(Numeric, nullable=True)
+    apartment=relationship("Apartment")
+    owner= relationship("Person", foreign_keys=[owner_id])
+    client=relationship("Person", foreign_keys=[client_id])
 
-    apartment = relationship("Apartment")
-    owner     = relationship("Person", foreign_keys=[owner_id])
-    client    = relationship("Person", foreign_keys=[client_id])
+
+class Review(Base):
+    __tablename__ = "review"
+ 
+    id           = Column(Integer, primary_key=True, index=True)
+    apartment_id = Column(Integer, ForeignKey("apartment.id", ondelete="CASCADE"), nullable=False)
+    author_id    = Column(Integer, ForeignKey("person.id",    ondelete="CASCADE"), nullable=False)
+    text         = Column(Text, nullable=False)
+    # created_at — дата створення, заповнюється автоматично
+    created_at   = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+ 
+    apartment = relationship("Apartment", back_populates="reviews")
+    author    = relationship("Person")
