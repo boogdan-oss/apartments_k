@@ -9,12 +9,7 @@ CreateSchemaType = TypeVar("CreateSchemaType")
 UpdateSchemaType = TypeVar("UpdateSchemaType")
 
 
-# -------------------------------------------------------
-# ООП: Абстрактний базовий клас (ABC)
-# Принцип: Абстракція — визначає інтерфейс без реалізації create().
-# Принцип: Generics — один клас для будь-якої моделі.
-# Принцип: Open/Closed — відкритий для розширення, закритий для змін.
-# -------------------------------------------------------
+
 class BaseRepository(ABC, Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def __init__(self, model: Type[ModelType]):

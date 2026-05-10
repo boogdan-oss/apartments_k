@@ -4,24 +4,6 @@ from fastapi import HTTPException
 from sqlalchemy import insert
 import models, schemas, auth
 from base_repository import BaseRepository
-
-
-# =======================================================
-# ООП: ІЄРАРХІЯ РЕПОЗИТОРІЇВ ДЛЯ PERSON
-#
-#   BaseRepository (абстрактний, Generic)
-#       └── PersonRepository      (базовий для людей)
-#               ├── OwnerRepository   (власник)
-#               └── ClientRepository  (орендар)
-# =======================================================
-
-
-# -------------------------------------------------------
-# ООП: Конкретний клас — PersonRepository
-# Принцип: Наслідування від BaseRepository.
-# Принцип: Реалізує abstractmethod create().
-# Принцип: Є батьківським для Owner і Client репозиторіїв.
-# -------------------------------------------------------
 class PersonRepository(BaseRepository[models.Person, schemas.PersonCreate, schemas.PersonUpdate]):
 
     def __init__(self):
@@ -49,17 +31,11 @@ class PersonRepository(BaseRepository[models.Person, schemas.PersonCreate, schem
         return db.query(self.model).filter(self.model.email == email).first()
 
 
-# -------------------------------------------------------
-# ООП: Дочірній клас — OwnerRepository
-# Принцип: Наслідування від PersonRepository.
-# Принцип: Override create() — створює Owner (підклас Person).
-# Принцип: Розширення — додає get_with_apartments().
-# -------------------------------------------------------
+
 class OwnerRepository(PersonRepository):
 
     def __init__(self):
-        # ООП: super().__init__() — виклик батьківського конструктора
-        # але модель перевизначаємо на Owner
+       
         BaseRepository.__init__(self, models.Owner)
 
     # ООП: Override — перевизначаємо create() для Owner
@@ -86,13 +62,7 @@ class OwnerRepository(PersonRepository):
 
     def promote_from_client(self, db: Session, person_id:int) -> None:
         """Змінює роль з client на owner при першому оголошенні."""
-    #     person = db.query(models.Person).filter(models.Person.id == person_id).first()
-    #     person.role = models.UserRole.owner
-    
-    # # Створюємо запис в owner
-    #     owner = models.Owner(id=person_id)
-    #     db.add(owner)
-    #     db.flush()
+
 
         person = db.query(models.Person).filter(models.Person.id == person_id).first()
         if not person:
@@ -115,12 +85,7 @@ class OwnerRepository(PersonRepository):
         db.flush()
 
 
-# -------------------------------------------------------
-# ООП: Дочірній клас — ClientRepository
-# Принцип: Наслідування від PersonRepository.
-# Принцип: Override create() — створює Client.
-# Принцип: Розширення — get_contracts().
-# -------------------------------------------------------
+
 class ClientRepository(PersonRepository):
 
     def __init__(self):
@@ -150,10 +115,7 @@ class ClientRepository(PersonRepository):
         ).all()
 
 
-# =======================================================
-# ООП: ApartmentRepository — окрема гілка від BaseRepository
-# (не пов'язана з PersonRepository)
-# =======================================================
+
 
 class ApartmentRepository(BaseRepository[models.Apartment, schemas.ApartmentCreate, schemas.ApartmentUpdate]):
 
