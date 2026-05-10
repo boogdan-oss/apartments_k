@@ -73,6 +73,7 @@ class OwnerRepository(PersonRepository):
             id_card_series = schema.id_card_series,
             hashed_password= auth.get_password_hash(schema.password),
             role           = models.UserRole.owner,  # роль фіксована
+            telegram=schema.telegram,
         )
         db.add(owner)
         db.commit()

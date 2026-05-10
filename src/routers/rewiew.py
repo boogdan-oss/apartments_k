@@ -14,7 +14,7 @@ def get_reviews(apartment_id: int, db: Session = Depends(get_db)):
     """Отримати всі відгуки для оголошення."""
     reviews = (
         db.query(models.Review)
-        .filter(models.Review.apartment_id == apartment_id)
+        .filter(models.Review.apartment_id == apartment_id,models.Review.status=="active")
         .order_by(models.Review.created_at.desc())
         .all()
     )

@@ -36,7 +36,8 @@ class ApartmentAdmin(ModelView, model=models.Apartment):
         "price": {"readonly": True},
         "room_count": {"readonly": True},
         "owner_id": {"readonly": True},
-        "img":{"readonly": True}
+        "img":{"readonly": True},
+        "telegram":{"readonly":True}
         
     }
     form_overrides = {
@@ -53,9 +54,43 @@ class ApartmentAdmin(ModelView, model=models.Apartment):
             ]
         }
     }
-# В'юшка для Договорів (Contract)
-class ContractAdmin(ModelView, model=models.Contract):
-    column_list = [models.Contract.id, models.Contract.start_date, models.Contract.end_date, models.Contract.status]
-    name = "Договір"
-    name_plural = "Договори"
-    icon = "fa-solid fa-file-signature"
+
+# admin.py
+
+class ReviewAdmin(ModelView, model=models.Review):
+    column_list = [
+        models.Review.id, 
+        models.Review.author_id, 
+        models.Review.apartment_id, 
+        models.Review.status, 
+        models.Review.created_at
+    ]
+    
+    column_searchable_list = [models.Review.text]
+    
+    name = "Відгук"
+    name_plural = "Відгуки"
+    icon = "fa-solid fa-comment-dots"
+
+    # Налаштування форми редагування
+    form_overrides = {
+        "status": SelectField
+    }
+    
+    form_args = {
+        "status": {
+            "choices": [
+                ("active", "Активний (Опубліковано)"),
+                ("banned", "Заблокований (Приховано)")
+            ]
+        }
+    }
+    
+    # Робимо текст відгуку та посилання на автора тільки для читання, 
+    # щоб модератор міг змінити лише статус
+    form_widget_args = {
+        "text": {"readonly": True},
+        "author_id": {"readonly": True},
+        "apartment_id": {"readonly": True},
+        "created_at": {"readonly": True}
+    }

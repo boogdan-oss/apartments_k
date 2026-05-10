@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import apartments,users,auth,contracts,images,rewiew
+from routers import apartments,users,auth,contracts,images,rewiew,addresses
 from sqladmin import Admin
-from admin import PersonAdmin,ApartmentAdmin,ContractAdmin
+from admin import PersonAdmin,ApartmentAdmin,ReviewAdmin
 from fastapi.staticfiles import StaticFiles
 import os
 from sqlalchemy import text
@@ -28,7 +28,7 @@ app.add_middleware(
 admin = Admin(app, engine)
 admin.add_view(PersonAdmin)
 admin.add_view(ApartmentAdmin)
-admin.add_view(ContractAdmin)
+admin.add_view(ReviewAdmin)
 
 app.include_router(auth.router)
 app.include_router(apartments.router)
@@ -36,6 +36,7 @@ app.include_router(users.router)
 app.include_router(contracts.router)
 app.include_router(images.router)
 app.include_router(rewiew.router)
+app.include_router(addresses.router)
 
 @app.get("/")
 def root():

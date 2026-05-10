@@ -1,9 +1,10 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional,List
 from datetime import date
 from decimal import Decimal
 from models import UserRole
 from datetime import datetime
+
 #валідація.структура,репка і модулі
 
 class PersonBase(BaseModel):
@@ -35,6 +36,7 @@ class PersonResponse(PersonBase):
 
 
 class AddressBase(BaseModel):
+    id:int#delete
     street: str
     building: str
     apartment_number: str
@@ -57,12 +59,19 @@ class ApartmentBase(BaseModel):
     area: Decimal
     price: Decimal
     room_count: int
-    # status: Optional[str] 
     address_id: Optional[int] = None # Зробили необов'язковим для спрощення
+    telegram: Optional[str] = None
    
 
 class ApartmentCreate(ApartmentBase):
     pass
+
+class ApartmentImageResponse(BaseModel):
+    id: int
+    url: str
+    is_main: bool
+    class Config:
+        from_attributes = True
 
 class ApartmentUpdate(BaseModel):
     title: Optional[str] = None
@@ -74,6 +83,9 @@ class ApartmentUpdate(BaseModel):
 class ApartmentResponse(ApartmentBase):
     id: int
     owner_id: int
+    images: List[ApartmentImageResponse] = []
+    telegram: Optional[str] = None
+    owner: Optional[PersonResponse] = None
     class Config:
         from_attributes = True
 

@@ -222,18 +222,31 @@ def get_listing_details(listing_id: int, db: Session = Depends(get_db)):
         
     
     return {
-        "id": listing.id,
-        "title": listing.title,
-        "price": listing.price,
+        "id":          listing.id,
+        "title":       listing.title,
+        "price":       listing.price,
         "description": listing.description,
-        "img": listing.img,
-        "city":listing.city,
-        "type":listing.type,
-        # Дані власника беремо зі зв'язаної таблиці!
+        "img":         listing.img,
+        "city":        listing.city,
+        "type":        listing.type,
+        "area":        listing.area,
+        "room_count":  listing.room_count,
+        "status":      listing.status,
+        "owner_id":    listing.owner_id,
+        "address_id":  listing.address_id,
+        "telegram":    listing.telegram,  
+ 
+       
+        "images": [
+            {"id": img.id, "url": img.url, "is_main": img.is_main}
+            for img in listing.images
+        ],
+ 
         "owner": {
-            "name": listing.owner.name,
-            "surname": listing.owner.surname,
-            "email": listing.owner.email
+            "name":         listing.owner.name,
+            "surname":      listing.owner.surname,
+            "email":        listing.owner.email,
+            "phone_number": listing.owner.phone_number,  
         }
     }
 
@@ -272,9 +285,18 @@ def read_apartments(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
 @router.post("/", response_model=schemas.ApartmentResponse, status_code=status.HTTP_201_CREATED)
 def create_apartment(schema: schemas.ApartmentCreate, db: Session = Depends(get_db),
                      current_user: models.Person = Depends(get_current_user)):
-    # ООП: OwnerRepository підвищує роль при першому оголошенні
-    if current_user.role == models.UserRole.client:
+   
+
+    
+    # 1. Додаємо print, щоб побачити в консолі, чи заходить код в if
+    existing_owner = db.query(models.Owner).filter(models.Owner.id == current_user.id).first()
+    
+    # 2. Якщо запису немає — створюємо його (навіть якщо роль чомусь вже "owner")
+    if not existing_owner:
         owner_repo.promote_from_client(db, current_user.id)
+        db.refresh(current_user) # Оновлюємо стан юзера
+
+    # 3. Створюємо квартиру
     return apartment_repo.create(db, schema, owner_id=current_user.id)
 
 
