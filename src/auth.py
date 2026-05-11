@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from passlib.context import CryptContext
 import jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+
 from config import settings 
 
 
@@ -25,5 +24,3 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
-

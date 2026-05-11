@@ -49,7 +49,7 @@ class AddressResponse(AddressBase):
     class Config:
         from_attributes = True
 
-
+# --- APARTMENT ---
 class ApartmentBase(BaseModel):
     title: str              
     description: str        
@@ -59,7 +59,7 @@ class ApartmentBase(BaseModel):
     area: Decimal
     price: Decimal
     room_count: int
-    address_id: Optional[int] = None 
+    address_id: Optional[int] = None # Зробили необов'язковим для спрощення
     telegram: Optional[str] = None
    
 
@@ -103,15 +103,15 @@ class Contract(BaseModel):
         from_attributes = True
 
 class ContractCreate(Contract):
-    pass 
+    pass # Бере всі поля з ContractBase (фронтенд відправляє саме їх)
 
 class ContractStatusUpdate(BaseModel):
     status: str 
 
 class ContractResponse(Contract):
     id: int
-    owner_id: int 
-    status: str    
+    owner_id: int # Це поле додає сам бекенд з токена
+    status: str    # Це поле теж додає бекенд ("в процесі")
     
     class Config:
         from_attributes = True
@@ -126,7 +126,7 @@ class ReviewResponse(BaseModel):
     id: int
     text: str
     created_at: datetime
-   
+    # Вкладені дані автора — щоб фронт одразу мав ім'я і прізвище
     author_name: str
     author_surname: str
  

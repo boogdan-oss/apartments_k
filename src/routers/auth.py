@@ -2,9 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import get_db
-import  auth, schemas, models
+import crud, auth, schemas, models
 from auth import SECRET_KEY, ALGORITHM
-import repositories
 import jwt
 from jwt.exceptions import InvalidTokenError
 
@@ -15,7 +14,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 @router.post("/api/auth/login", response_model=schemas.Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     # Шукаємо користувача за email (у формі OAuth2 поле називається username, але ми передаємо email)
-    user = repositories.get_by_email(db, email=form_data.username)
+    user = crud.get_user_by_email(db, email=form_data.username)
     
     # Перевіряємо чи є користувач і чи співпадає пароль
     if not user or not auth.verify_password(form_data.password, user.hashed_password):
@@ -29,7 +28,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     access_token = auth.create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
-
+# Функція, яка захищає маршрути (витягує поточного користувача з токена)
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -44,7 +43,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except InvalidTokenError:
         raise credentials_exception
         
-    user = repositories.get_by_email(db, email=email)
+    user = crud.get_user_by_email(db, email=email)
     if user is None:
         raise credentials_exception
     return user

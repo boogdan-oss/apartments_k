@@ -13,10 +13,10 @@ UpdateSchemaType = TypeVar("UpdateSchemaType")
 class BaseRepository(ABC, Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def __init__(self, model: Type[ModelType]):
-       
+        # ООП: Інкапсуляція — модель як внутрішній стан об'єкта
         self.model = model
 
-   
+    # Конкретні методи — реалізовані тут, успадковуються дочірніми
     def get(self, db: Session, id: int) -> Optional[ModelType]:
         return db.query(self.model).filter(self.model.id == id).first()
 
@@ -38,7 +38,10 @@ class BaseRepository(ABC, Generic[ModelType, CreateSchemaType, UpdateSchemaType]
             db.commit()
         return obj
 
- 
+    # -------------------------------------------------------
+    # ООП: Абстрактний метод — підкласи ЗОБОВ'ЯЗАНІ реалізувати.
+    # Принцип: Поліморфізм — кожен підклас реалізує по-своєму.
+    # -------------------------------------------------------
     @abstractmethod
     def create(self, db: Session, schema: CreateSchemaType) -> ModelType:
         """Кожен репозиторій реалізує create() по-своєму."""

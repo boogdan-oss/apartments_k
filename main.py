@@ -6,7 +6,7 @@ from sqladmin import Admin
 from admin import PersonAdmin,ApartmentAdmin,ReviewAdmin
 from fastapi.staticfiles import StaticFiles
 import os
-
+from sqlalchemy import text
 
 
 Base.metadata.create_all(bind=engine)
@@ -16,7 +16,7 @@ app = FastAPI(title="Real Estate Agency API", version="1.0.0")
 
 os.makedirs("static/images", exist_ok=True)
 
-
+# Монтуємо папку, щоб картинки були доступні за посиланням
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.add_middleware(
     CORSMiddleware,
