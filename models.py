@@ -37,14 +37,11 @@ class Person(Base):
     phone_number=Column(String(20),  unique=True, nullable=False)
     date_of_birth=Column(Date, nullable=True)
     id_card_series=Column(String(50),  unique=True, nullable=True)
-
-    # Дискримінатор поліморфізму: SQLAlchemy дивиться на це поле
-    # і вирішує який підклас (Owner / Client / Person) повернути.
     role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.client)
 
     __mapper_args__ = {
         "polymorphic_on":role,
-        "polymorphic_identity": UserRole.admin,  # Person без підкласу = admin
+        "polymorphic_identity": UserRole.admin,  
     }
 
 

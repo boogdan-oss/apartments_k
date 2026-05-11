@@ -9,7 +9,7 @@ class PersonRepository(BaseRepository[models.Person, schemas.PersonCreate, schem
     def __init__(self):
         super().__init__(models.Person)
 
-    # ООП: Реалізація abstractmethod — обов'язкова
+    
     def create(self, db: Session, schema: schemas.PersonCreate) -> models.Person:
         person = models.Person(
             name           = schema.name,
@@ -26,7 +26,7 @@ class PersonRepository(BaseRepository[models.Person, schemas.PersonCreate, schem
         db.refresh(person)
         return person
 
-    # Розширення — специфічний метод тільки для Person
+   
     def get_by_email(self, db: Session, email: str) -> Optional[models.Person]:
         return db.query(self.model).filter(self.model.email == email).first()
 
@@ -122,7 +122,7 @@ class ApartmentRepository(BaseRepository[models.Apartment, schemas.ApartmentCrea
     def __init__(self):
         super().__init__(models.Apartment)
 
-    # ООП: Реалізація abstractmethod create()
+   
     def create(self, db: Session, schema: schemas.ApartmentCreate,
             owner_id: int = None) -> models.Apartment:
         apartment = models.Apartment(
@@ -135,7 +135,7 @@ class ApartmentRepository(BaseRepository[models.Apartment, schemas.ApartmentCrea
             price=schema.price,
             room_count=schema.room_count,
             address_id=schema.address_id,
-            owner_id=owner_id,  # ✅ явно передаємо
+            owner_id=owner_id,  
             status="pending",
         )
         db.add(apartment)
@@ -143,7 +143,7 @@ class ApartmentRepository(BaseRepository[models.Apartment, schemas.ApartmentCrea
         db.refresh(apartment)
         return apartment
 
-    # ООП: Розширення — специфічні методи тільки для квартир
+   
     def get_active(self, db: Session, skip: int = 0, limit: int = 100) -> list:
         return (
             db.query(self.model)
@@ -177,9 +177,7 @@ class ApartmentRepository(BaseRepository[models.Apartment, schemas.ApartmentCrea
         return apartment
 
 
-# -------------------------------------------------------
-# Singleton-like екземпляри — імпортуються в роутерах
-# -------------------------------------------------------
+
 person_repo   = PersonRepository()
 owner_repo    = OwnerRepository()
 client_repo   = ClientRepository()

@@ -3,18 +3,15 @@ import models
 from wtforms import SelectField
 
 class PersonAdmin(ModelView, model=models.Person):
-    # Які колонки показувати в списку?
     column_list = [models.Person.id, models.Person.name, models.Person.surname, models.Person.role]
     # По яких колонках можна шукати?
     column_searchable_list = [models.Person.name, models.Person.email]
-    # Налаштування сортування за замовчуванням
     column_sortable_list = [models.Person.id]
-    # Назва в меню (необов'язково)
     name = "Користувач"
     name_plural = "Користувачі"
     icon = "fa-solid fa-users"
 
-# В'юшка для Оголошень (Apartment)
+
 class ApartmentAdmin(ModelView, model=models.Apartment):
     # Колонки, які видно в загальній таблиці
     column_list = [models.Apartment.id, models.Apartment.title, models.Apartment.price, models.Apartment.status]
@@ -55,7 +52,7 @@ class ApartmentAdmin(ModelView, model=models.Apartment):
         }
     }
 
-# admin.py
+
 
 class ReviewAdmin(ModelView, model=models.Review):
     column_list = [
@@ -72,7 +69,7 @@ class ReviewAdmin(ModelView, model=models.Review):
     name_plural = "Відгуки"
     icon = "fa-solid fa-comment-dots"
 
-    # Налаштування форми редагування
+    
     form_overrides = {
         "status": SelectField
     }
@@ -86,8 +83,7 @@ class ReviewAdmin(ModelView, model=models.Review):
         }
     }
     
-    # Робимо текст відгуку та посилання на автора тільки для читання, 
-    # щоб модератор міг змінити лише статус
+   
     form_widget_args = {
         "text": {"readonly": True},
         "author_id": {"readonly": True},
